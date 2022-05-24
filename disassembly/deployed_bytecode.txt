@@ -1,0 +1,150 @@
+// SOURCE https://etherscan.io/address/0x90949c9937A11BA943C7A72C3FA073a37E3FdD96#code
+
+// Store 0x80 at the free memory pointer
+PUSH1 0x80
+PUSH1 0x40
+MSTORE
+
+/**
+BEGIN FALLBACK
+**/
+
+// Push CALLDATASIZE to stack
+CALLDATASIZE
+// Push 36 to to stack
+PUSH1 0x24
+// Substract 36 - CALLDATASIZE [1]
+SUB
+// Push 22 on the stack
+PUSH1 0x22
+// IF [1] was not zero, Jump to [2]
+JUMPI
+// [1] was zero, enter the if statement
+// Load the word in calldata with an offset of 4. Push this to the stack.
+PUSH1 0x04
+CALLDATALOAD
+// Load the slot from storage identified by the value on the stack
+SLOAD
+// Store the value at the loaded slot at the first word in memory 
+PUSH1 0x00
+MSTORE
+// Load the word in calldata with an offset of 4 (again). Push this to the stack 
+PUSH1 0x04
+CALLDATALOAD
+// Push 1 to the stack
+PUSH1 0x01
+// Add the two values on the stack (CALLDATA[4:36) + 1)
+ADD
+// Load from storage slot at this value
+SLOAD
+// Store this value at the second word in memory
+PUSH1 0x20
+MSTORE
+// Return the first two words in memory (value at storage slot in calldata, and value at that slot + 1)
+PUSH1 0x40
+PUSH1 0x00
+RETURN
+
+// We jump here if [1] is != 0
+JUMPDEST [2]
+// Push the first word after the selector in the calldata (name)
+PUSH1 0x04
+CALLDATALOAD
+// Push the second word after the selector in the calldata (meta)
+PUSH1 0x24
+CALLDATALOAD
+// Push the third word after the selector in calldata (data)
+PUSH1 0x44
+CALLDATALOAD
+// Push the caller() address onto the stack and store it in the first word of memory
+CALLER
+PUSH1 0x00
+MSTORE
+// Duplicate the 3rd value on the stack (name) and store it at the second word of memory
+DUP3
+PUSH1 0x20
+// Compute the keccak256 of caller() . name (where . is concat)
+MSTORE
+PUSH1 0x40
+PUSH1 0x00
+SHA3
+// Duplicate the 2nd word on the stack (data)
+DUP2
+// Duplicate the 4th word on the stack (meta) 
+DUP4
+// Duplicate the 6th word on the stack (name)
+DUP6
+// Store the caller on the stack
+CALLER
+// Store zero on the stack
+PUSH1 0x00
+// Duplicate the 1st word on the stack (0)
+DUP1
+// Emit log4 using first 6 words on stack (0,0,caller,name,meta,data)
+LOG4
+// Duplicate the 2nd word on the stack (data) 
+DUP2
+// Push 1 to the stack. Duplicate the 3rd word (keccac256 of caller() . name). Add these two.
+PUSH1 0x01
+DUP3
+ADD
+// Store data at 1 + keccak256(caller() . name)
+SSTORE
+// Duplicate the first word on the stack (keccak256(caller() . name))
+DUP1
+// Load the storage slot at this value
+SLOAD
+// Push 0x1 to the stack (constant, but represents LOCK). Do 0x1 & keccak256(caller() . name), and store value on stack.
+PUSH1 0x01
+AND
+// Push the size of the calldata onto the stack. Push 100 on to the stack
+CALLDATASIZE
+PUSH1 0x64
+// XOR 100 and CALLDATASIZE. Store the value on the stack
+XOR
+// Check if either of the last two values pushed to stack are 1
+OR
+// Push jump dest onto stack
+PUSH1 0x58 
+// Jump to [4] if OR statement is true ([3])
+JUMPI
+DUP3
+DUP2
+SSTORE
+STOP
+JUMPDEST
+POP
+POP
+POP
+POP
+CALLDATASIZE
+PUSH1 0x64
+SUB
+PUSH1 0x74
+JUMPI
+PUSH4 0xa1422f69
+PUSH1 0xe0
+SHL
+PUSH1 0x00
+MSTORE
+PUSH1 0x04
+PUSH1 0x00
+REVERT
+// We jump here if [3] is equal to zero
+JUMPDEST [4]
+PUSH1 0x00
+DUP1
+REVERT
+'fe'(Unknown Opcode)
+LOG2
+PUSH5 0x6970667358
+'22'(Unknown Opcode)
+SLT
+SHA3
+SELFBALANCE
+'5e'(Unknown Opcode)
+'23'(Unknown Opcode)
+DUP16
+MULMOD
+'c0'(Unknown Opcode)
+PUSH28 0x2df011287cd0b887d9e0864657776ab6a3484c43f79237fefa64736f
