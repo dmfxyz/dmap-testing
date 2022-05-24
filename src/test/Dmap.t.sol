@@ -40,13 +40,11 @@ contract ContractTest is Test {
         vm.assume(locked);
 
         // set once
-        bytes memory call_data = abi.encodePacked(SEL,name,meta,data);
-        (bool ok1, ) = dmap_address.call(call_data);
+        (bool ok1, ) = dmap_address.call(abi.encodePacked(SEL,name,meta,data));
         require(ok1);
 
         // try to set again
-        bytes memory call_data_2 = abi.encodePacked(SEL,name,meta,bytes32("other data"));
-        (bool ok2, ) = dmap_address.call(call_data_2);
+        (bool ok2, ) = dmap_address.call(abi.encodePacked(SEL,name,meta,bytes32("other data")));
 
         // expect a revert
         require(!ok2);
@@ -61,8 +59,7 @@ contract ContractTest is Test {
             mstore(ptr, keccak256(0x0, 0x40))
             data_slot := add(1, mload(ptr))
         } 
-        bytes memory call_data_get = abi.encodePacked(SEL, data_slot);
-        (bool ok3, bytes memory get_return) = dmap_address.call(call_data_get);
+        (bool ok3, bytes memory get_return) = dmap_address.call(abi.encodePacked(SEL, data_slot));
         require(ok3); // should still be able to read
         bytes32 stored_data = abi.decode(get_return, (bytes32));
         assertEq(data, stored_data);
