@@ -45,8 +45,8 @@ PUSH1 0x40
 PUSH1 0x00
 RETURN
 
-// We jump here if [1] is != 0
-JUMPDEST [2]
+// [2] We jump here if [1] is != 0
+JUMPDEST
 // Push the first word after the selector in the calldata (name)
 PUSH1 0x04
 CALLDATALOAD
@@ -106,7 +106,7 @@ XOR
 OR
 // Push jump dest onto stack
 PUSH1 0x58 
-// Jump to [4] if OR statement is true ([3])
+// [3] Jump to [4] if OR statement is true
 JUMPI
 DUP3
 DUP2
@@ -130,8 +130,8 @@ MSTORE
 PUSH1 0x04
 PUSH1 0x00
 REVERT
-// We jump here if [3] is equal to zero
-JUMPDEST [4]
+// [4] We jump here if [3] is equal to zero
+JUMPDEST
 PUSH1 0x00
 DUP1
 REVERT
