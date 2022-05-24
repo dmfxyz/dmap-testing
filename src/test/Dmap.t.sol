@@ -82,17 +82,8 @@ contract ContractTest is Test {
         bytes32 meta_slot = keccak256(abi.encode(address(this), name));
         (bool ok2, bytes memory ret2) = dmap_address.call(abi.encodePacked(SEL, meta_slot));
         require(ok2);
-        bytes32 returned_meta = abi.decode(ret2, (bytes32));
+        (bytes32 returned_meta, bytes32 returned_data)  = abi.decode(ret2, (bytes32, bytes32));
         assertEq(meta, returned_meta);
-
-        // test get data
-        bytes32 data_slot;
-        assembly {
-            data_slot := add(1, meta_slot)
-        }
-        (bool ok3, bytes memory ret3) = dmap_address.call(abi.encodePacked(SEL, data_slot));
-        require(ok3);
-        bytes32 returned_data = abi.decode(ret3, (bytes32));
         assertEq(data, returned_data);
     }
 
