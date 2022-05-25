@@ -4,8 +4,10 @@ For starters, know that the dmap object is deployed [here](https://etherscan.io/
 
 Let's start by going through the fallback function, line by line.
 
-Example Scenario: Calling `get(1)`, aka reading the `rootzone`
+Example Scenario: Calling `get(1)`, aka reading the `rootzone`'s `data`.a
 We will be inspecting the assembly for the following section of the object
+
+(Alternatively, you can read 2 words from `0x0` for both `rootzone`'s `meta` and `data` i.e. `get(0)`)
 ```
 if eq(36, calldatasize()) {
     mstore(0, sload(calldataload(4)))
