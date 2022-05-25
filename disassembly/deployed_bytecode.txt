@@ -5,10 +5,6 @@ PUSH1 0x80
 PUSH1 0x40
 MSTORE
 
-/**
-BEGIN FALLBACK
-**/
-
 // Push CALLDATASIZE to stack
 CALLDATASIZE
 // Push 36 to to stack
@@ -97,44 +93,56 @@ SLOAD
 // Push 0x1 to the stack (constant, but represents LOCK). Do 0x1 & keccak256(caller() . name), and store value on stack.
 PUSH1 0x01
 AND
-// Push the size of the calldata onto the stack. Push 100 on to the stack
+// Push the size of the calldata onto the stack. Push 100 on to the stack.
 CALLDATASIZE
 PUSH1 0x64
 // XOR 100 and CALLDATASIZE. Store the value on the stack
 XOR
-// Check if either of the last two values pushed to stack are 1
+// Check if either of the last two values pushed to stack are 1 (lock is set or calldata is not 100)
 OR
 // Push jump dest onto stack
 PUSH1 0x58 
-// [3] Jump to [4] if OR statement is true
+// [3] Jump to [4] if OR statement is true (lock is set or wrong calldatasize)
 JUMPI
+// Store the meta at slot keccak256(caller() . name ) and return 0 (STOP)
 DUP3
 DUP2
 SSTORE
 STOP
+
+// [4] We jump here if the lock is set. Pop all variables from stack.
 JUMPDEST
 POP
 POP
 POP
 POP
+// Push (100 - CALLDATASIZE) to the stack
 CALLDATASIZE
 PUSH1 0x64
 SUB
+// [5] Push jump location [6] to stack and jump if (100 - calldatasize) != 0 
 PUSH1 0x74
 JUMPI
+// Didn't jump. We attempted to write to a locked meta slot. Put LOCKED() error on stack and shift left 224 bits so
+// the 4byte error is left aligned
 PUSH4 0xa1422f69
 PUSH1 0xe0
 SHL
+// store the shifted error at memory position 0
 PUSH1 0x00
 MSTORE
+// Revert with the 4byte error data
 PUSH1 0x04
 PUSH1 0x00
 REVERT
-// [4] We jump here if [3] is equal to zero
+
+// [6] We jump here if [5] is equal to zero. This means a calldatasize was neither 36 nor 100.
 JUMPDEST
 PUSH1 0x00
 DUP1
 REVERT
+
+// remainder of init code
 'fe'(Unknown Opcode)
 LOG2
 PUSH5 0x6970667358
