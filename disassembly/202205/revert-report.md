@@ -1,8 +1,6 @@
-Testcase: `Revert.sol` 2nd call, after sstoring data
+Testcase: `Revert.sol`. For conciseness, we are starting the stepthrough from the 2nd call, after sstoring `data`
 
-Testcase detail: we already set a locked value in the 1st `set` call, now executing the 2nd, and this call should revert because we are setting a locked slot. The codes and state are similar to the basic set report.
-
-We are starting this stepthrough from line 46 for conciseness, refer to basic-set-report.md for similar stepthrough before this line.
+Solidity / Yul
 ```
 46 if iszero(or(xor(100, calldatasize()), and(LOCK, sload(slot)))) {
 47    sstore(slot, meta)
@@ -24,19 +22,17 @@ We are starting this stepthrough from line 46 for conciseness, refer to basic-se
 │04| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 |        
 │05| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 45 |        
 
+// memory
 │00| 00 00 00 00 00 00 00 00 00 00 00 00 b4 c7 9d ab 8f 25 9c 7a ee 6e 5b 2a a7 29 82 18 64 22 7e 84          
 │20| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 45                     
 │40| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80                     
 
-│053|▶JUMPI     // jumps to 0x58 indeed                                                                                                  
+│053|▶JUMPI     // jumps to 0x58 because 0x1
 ```
 
 ```
-│058| JUMPDEST  // no action
-```
-
-```
-│059| POP       // Why pop 4 times? Likely, the compiler knows values aren't used after jump, so the code `POP`s instead of `DUP1` etc.
+│058| JUMPDEST
+│059| POP       // Why pop 4 times? The compiler is likely popping usused values from the branch
 │05a| POP                                                                                                                
 │05b| POP                                                                                                                
 │05c| POP                                                                                                                
@@ -45,51 +41,48 @@ We are starting this stepthrough from line 46 for conciseness, refer to basic-se
 ```
 
 ```
-│05d| CALLDATASIZE     // because 100 byte calldata size
+// To check for a `set` call
 
-│00| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 64 
-```
 
-```
-│05e| PUSH1(0x64)      // compare for equality
+│05d| CALLDATASIZE     
+
+│00| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 64  // because 100 byte calldata size
+
+
+│05e| PUSH1(0x64)      // push 0x64 for comparison
 
 │00| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 64 | a                 
 │01| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 64 | b                 
-```
 
-```
+
 │060| SUB                                                                                                                
 
 │00| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 |                   
-```
 
-```
+
 │061| PUSH1(0x74)                                                                                                        
 
 │00| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 74 | jump_to           
 │01| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | if                
-```
 
-```
-│063| JUMPI           // doesn't jump, because calldatasize is 100 byte
+
+│063| JUMPI           // doesn't jump. calldatasize == 100 byte
 
 // empty stack as expected
 ```
 
 ```
-│064| PUSH4(0xa1422f69) // will be returned with `revert` as error code to represent lock error
+│064| PUSH4(0xa1422f69) // this will be returned with `revert` as error code to represent lock error
 
 │00| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 a1 42 2f 69 |                   
-```
 
-```
-│069| PUSH1(0xe0)      // for shifting, so the code can revert with the first 4 byte                                                                                   
+
+│069| PUSH1(0xe0)      // shift left, so the code can revert with the first 4 byte (up in memory address, because EVM is big endian)
 
 │00| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 e0 | shift             
 │01| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 a1 42 2f 69 | value             
-```
 
-```
+
 │06b| SHL        
 
 │00| a1 42 2f 69 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 |                   
@@ -100,12 +93,12 @@ We are starting this stepthrough from line 46 for conciseness, refer to basic-se
 
 │00| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | offset            
 │01| a1 42 2f 69 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | value             
-```
 
-```
+
 │06e| MSTORE           // memory store to 1st word
 
 // empty stack as expected
+
 
 // memory - 1st word is 0xa1422f69'00'.repeat(28) as expected
 │00| a1 42 2f 69 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                     
@@ -114,8 +107,8 @@ We are starting this stepthrough from line 46 for conciseness, refer to basic-se
 ```
 
 ```
-│06f| PUSH1(0x04)                                                                                                       
-│071| PUSH1(0x00)      // memory boundries for reverting                                                                      
+│06f| PUSH1(0x04)
+│071| PUSH1(0x00)
 
 // stack
 │00| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | offset            
@@ -126,9 +119,6 @@ We are starting this stepthrough from line 46 for conciseness, refer to basic-se
 │20| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 45                     
 │40| 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80                     
 
-```
 
-
-```
-│073| REVERT    // reverts with 1st 4 byte as return data i.e. 0xa1422f69 because we are setting a locked slot
+│073| REVERT    // reverts with 1st 4 byte as return data i.e. 0xa1422f69 as expectd because we are setting a locked slot
 ```
