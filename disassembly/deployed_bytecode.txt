@@ -142,7 +142,7 @@ PUSH1 0x00
 DUP1
 REVERT
 
-// remainder of init code
+// remainder of init / metadata code
 'fe'(Unknown Opcode)
 LOG2
 PUSH5 0x6970667358
