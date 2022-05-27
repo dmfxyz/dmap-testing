@@ -1,13 +1,15 @@
-## Fuzz Tests against deployed dmap object
+## Assembly Walkthroughs and Fuzz Tests against deployed dmap object
 ### What does this repo do?
-This repo is designed to fork the mainnet deploy of [dmap](https://github.com/dapphub/dmap) and run various fuzzed tests against it. For example
+**The more interesting part of this repo is a collection of various stepthroughs of the dmap object's deployed bytecode. Stepthroughs are from a number of contributors. See [Dissassembly](./disassembly)**.
+
+This less interesting part of this repo is designed to fork the mainnet deploy of [dmap](https://github.com/dapphub/dmap) and run various fuzzed tests against it. For example
 * It tests that the `get` and `set` functions of dmap work as expected
 * It further verifies the `set` function using storage inspection within our fork
 * It tests that entries with locked metadata (LSB of meta set to `0x1`) revert on 2nd write and data is not changed
 
 There are more tests to be written. 
 
-## How to use this repo
+### How to run tests in this repo
 This repo uses [Foundry](https://github.com/foundry-rs/foundry). Look in that repo for install instructions.
 
 To run them, go to the root of the repo and do:
@@ -24,7 +26,7 @@ optionally pass `-vvvv` to see fork and call details.
 
 If you don't have an ethereum node running for the rpc url and really don't want to run one, you can look at the Ethereum Foundation's [Node as a service](https://ethereum.org/en/developers/docs/nodes-and-clients/nodes-as-a-service/) article.
 
-## Example Output
+### Example Output
 Here's the example output with high verbosity. In this example we run each fuzzed test 10,000 times with different inputs. By default 256 runs are used as 10,000 takes some time. I do not recommend running it 10,000 times by default.
 
 For reference, running 256 iterations for all tests only takes about 10 seconds. 10,000 times takes 7+ minutes depending on your machine.
