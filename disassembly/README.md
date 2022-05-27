@@ -1,5 +1,7 @@
 ## Disassemlbing the DMAP object
-For starters, know that the dmap object is deployed [here](https://etherscan.io/address/0x90949c9937A11BA943C7A72C3FA073a37E3FdD96)
+For starters, know that the dmap object is deployed [here](https://etherscan.io/address/0x90949c9937A11BA943C7A72C3FA073a37E3FdD96).
+
+Please look at the various walkthroughs through this directory to see different approaches and styles.
 
 
 Let's start by going through the fallback function, line by line.
